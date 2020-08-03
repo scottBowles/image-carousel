@@ -105,7 +105,7 @@ function linear(timeFraction) {
   return timeFraction;
 }
 
-const rightToLeft = () => {
+const rightToLeft = (after) => {
   const leftIndex = indexPlusOne(mainIndex);
   const rightIndex = indexLessOne(mainIndex);
   const newImgIndex = indexLessOne(rightIndex);
@@ -142,13 +142,11 @@ const rightToLeft = () => {
         sideImgWidth + (mainImgWidth - sideImgWidth) * progress + "px";
       rightImg.style.opacity = 0.3 + 0.7 * progress;
     },
-    after() {
-      mainIndex = indexLessOne(mainIndex);
-    },
+    after,
   });
 };
 
-const leftToRight = () => {
+const leftToRight = (after) => {
   const leftIndex = indexPlusOne(mainIndex);
   const rightIndex = indexLessOne(mainIndex);
   const newImgIndex = indexPlusOne(leftIndex);
@@ -184,12 +182,26 @@ const leftToRight = () => {
       rightImg.style.width = sideImgWidth - progress * sideImgWidth + "px";
       rightImg.style.opacity = 0.3 - progress * 0.3;
     },
-    after() {
-      mainIndex = indexPlusOne(mainIndex);
-    },
+    after,
   });
 };
 
-leftArrow.addEventListener("click", rightToLeft);
+const handleLeftArrowClick = () => {
+  leftArrow.removeEventListener("click", handleLeftArrowClick);
+  rightToLeft(() => {
+    mainIndex = indexLessOne(mainIndex);
+    leftArrow.addEventListener("click", handleLeftArrowClick);
+  });
+};
 
-rightArrow.addEventListener("click", leftToRight);
+const handleRightArrowClick = () => {
+  rightArrow.removeEventListener("click", handleRightArrowClick);
+  leftToRight(() => {
+    mainIndex = indexPlusOne(mainIndex);
+    rightArrow.addEventListener("click", handleRightArrowClick);
+  });
+};
+
+leftArrow.addEventListener("click", handleLeftArrowClick);
+
+rightArrow.addEventListener("click", handleRightArrowClick);
