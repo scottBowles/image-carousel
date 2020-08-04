@@ -51,3 +51,37 @@
   align-items: center;
   position: relative;
 }
+
+.dots-container {
+  position: absolute;
+  bottom: 100px;
+  /* height: 20px; */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dotContainer {
+  height: 15px;
+  width: 15px;
+  margin: 5px;
+}
+
+.dot {
+  height: 11px;
+  width: 11px;
+  border: black 1px solid;
+  border-radius: 50%;
+}
+
+.dot:hover {
+  height: 12px;
+  width: 12px;
+  border: #404040 2px solid;
+  background-color: #808080;
+}
+
+.dot.active {
+  background-color: gray;
+}

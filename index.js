@@ -1,4 +1,5 @@
 const imagesContainer = document.querySelector(".images-container");
+const dotsContainer = document.querySelector(".dots-container");
 const leftArrow = document.querySelector(".left-arrow");
 const rightArrow = document.querySelector(".right-arrow");
 
@@ -37,7 +38,7 @@ const images = imageSrcs.map((src) => {
 });
 
 /*
- *  ADD IMGS TO THE DOM & SET INITIAL VALUES
+ *  ADD IMAGES TO THE DOM SET INITIAL VALUES
  */
 
 const setInitialState = (images) => {
@@ -47,9 +48,9 @@ const setInitialState = (images) => {
     imagesContainer.appendChild(img);
   });
 
-  let leftImg = images[2];
-  let mainImg = images[1];
-  let rightImg = images[0];
+  let leftImg = images[1];
+  let mainImg = images[0];
+  let rightImg = images[images.length - 1];
   mainImg.style.width = mainImgWidth + "px";
   mainImg.style.opacity = "1";
   mainImg.style.left = mainImgLeftValue + "px";
@@ -62,7 +63,32 @@ const setInitialState = (images) => {
 };
 
 setInitialState(images);
-let mainIndex = 1;
+let mainIndex = 0;
+
+/*
+ *  CREATE NAV DOTS, ADD TO DOM, SET INITIAL STATE
+ */
+
+const dots = images.map((image) => {
+  dot = document.createElement("div");
+  dot.classList.add("dot");
+  dot.id = images.indexOf(image);
+  return dot;
+});
+
+const dotContainers = dots.map((dot) => {
+  dotContainer = document.createElement("div");
+  dotContainer.classList.add("dotContainer");
+  return dotContainer;
+});
+
+dotContainers.forEach((dc) => dotsContainer.appendChild(dc));
+dots.forEach((dot, index) => {
+  dotContainers[index].appendChild(dot);
+});
+
+dots.forEach((dot) => dot.classList.remove("active"));
+dots[mainIndex].classList.add("active");
 
 /*
  *  UTILS
@@ -94,16 +120,13 @@ function animate({ timing, draw, duration, after }) {
   });
 }
 
-// const imgContainerWidth = imagesContainer.offsetWidth
-// const mainImgWidth = 500
-// const sideImgWidth = 210
-// const leftImgLeftValue = 80;
-// const mainImgLeftValue = imgContainerWidth / 2 - mainImgWidth / 2
-// const rightImgLeftValue = imgContainerWidth - 80 - sideImgWidth
-
 function linear(timeFraction) {
   return timeFraction;
 }
+
+/*
+ *  MOVEMENT
+ */
 
 const rightToLeft = (after) => {
   const leftIndex = indexPlusOne(mainIndex);
@@ -113,6 +136,7 @@ const rightToLeft = (after) => {
   const leftImg = images[leftIndex];
   const mainImg = images[mainIndex];
   const rightImg = images[rightIndex];
+  mainIndex = indexLessOne(mainIndex);
   animate({
     duration: 500,
     timing: linear,
@@ -142,7 +166,12 @@ const rightToLeft = (after) => {
         sideImgWidth + (mainImgWidth - sideImgWidth) * progress + "px";
       rightImg.style.opacity = 0.3 + 0.7 * progress;
     },
-    after,
+    after: () => {
+      if (after) after();
+      dots.forEach((dot) => dot.classList.remove("active"));
+      dots[mainIndex].classList.add("active");
+      leftArrow.addEventListener("click", handleLeftArrowClick);
+    },
   });
 };
 
@@ -154,6 +183,7 @@ const leftToRight = (after) => {
   const leftImg = images[leftIndex];
   const mainImg = images[mainIndex];
   const rightImg = images[rightIndex];
+  mainIndex = indexPlusOne(mainIndex);
   animate({
     duration: 500,
     timing: linear,
@@ -182,26 +212,47 @@ const leftToRight = (after) => {
       rightImg.style.width = sideImgWidth - progress * sideImgWidth + "px";
       rightImg.style.opacity = 0.3 - progress * 0.3;
     },
-    after,
+    after: () => {
+      if (after) after();
+      dots.forEach((dot) => dot.classList.remove("active"));
+      dots[mainIndex].classList.add("active");
+      rightArrow.addEventListener("click", handleRightArrowClick);
+    },
   });
 };
 
+/*
+ *  EVENT LISTENERS
+ */
+
 const handleLeftArrowClick = () => {
   leftArrow.removeEventListener("click", handleLeftArrowClick);
-  rightToLeft(() => {
-    mainIndex = indexLessOne(mainIndex);
-    leftArrow.addEventListener("click", handleLeftArrowClick);
-  });
+  rightToLeft();
 };
 
 const handleRightArrowClick = () => {
   rightArrow.removeEventListener("click", handleRightArrowClick);
-  leftToRight(() => {
-    mainIndex = indexPlusOne(mainIndex);
-    rightArrow.addEventListener("click", handleRightArrowClick);
-  });
+  leftToRight();
+};
+
+const handleDotClick = async (e) => {
+  const targetIndex = parseInt(e.target.id);
+  const distanceToTarget = Math.abs(mainIndex - targetIndex);
+  const directionToTarget = mainIndex > targetIndex ? "left" : "right";
+  const nearestPath =
+    (distanceToTarget > images.length && directionToTarget === "left") ||
+    (distanceToTarget < images.length && directionToTarget === "right")
+      ? leftToRight
+      : rightToLeft;
+  while (mainIndex !== targetIndex) {
+    nearestPath();
+  }
 };
 
 leftArrow.addEventListener("click", handleLeftArrowClick);
 
 rightArrow.addEventListener("click", handleRightArrowClick);
+
+dots.forEach((dot) => {
+  dot.addEventListener("click", handleDotClick);
+});
