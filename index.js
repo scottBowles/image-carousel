@@ -48,9 +48,9 @@ const setInitialState = (images) => {
     imagesContainer.appendChild(img);
   });
 
-  let leftImg = images[1];
+  let leftImg = images[images.length - 1];
   let mainImg = images[0];
-  let rightImg = images[images.length - 1];
+  let rightImg = images[1];
   mainImg.style.width = mainImgWidth + "px";
   mainImg.style.opacity = "1";
   mainImg.style.left = mainImgLeftValue + "px";
@@ -129,14 +129,14 @@ function linear(timeFraction) {
  */
 
 const rightToLeft = (after, duration) => {
-  const leftIndex = indexPlusOne(mainIndex);
-  const rightIndex = indexLessOne(mainIndex);
-  const newImgIndex = indexLessOne(rightIndex);
+  const leftIndex = indexLessOne(mainIndex);
+  const rightIndex = indexPlusOne(mainIndex);
+  const newImgIndex = indexPlusOne(rightIndex);
   const newImg = images[newImgIndex];
   const leftImg = images[leftIndex];
   const mainImg = images[mainIndex];
   const rightImg = images[rightIndex];
-  mainIndex = indexLessOne(mainIndex);
+  mainIndex = indexPlusOne(mainIndex);
   animate({
     duration,
     timing: linear,
@@ -170,7 +170,7 @@ const rightToLeft = (after, duration) => {
       if (after) after();
       dots.forEach((dot) => dot.classList.remove("active"));
       dots[mainIndex].classList.add("active");
-      leftArrow.addEventListener("click", handleLeftArrowClick);
+      rightArrow.addEventListener("click", handleRightArrowClick);
     },
   });
   return new Promise(function (resolve) {
@@ -179,14 +179,14 @@ const rightToLeft = (after, duration) => {
 };
 
 const leftToRight = (after, duration) => {
-  const leftIndex = indexPlusOne(mainIndex);
-  const rightIndex = indexLessOne(mainIndex);
-  const newImgIndex = indexPlusOne(leftIndex);
+  const leftIndex = indexLessOne(mainIndex);
+  const rightIndex = indexPlusOne(mainIndex);
+  const newImgIndex = indexLessOne(leftIndex);
   const newImg = images[newImgIndex];
   const leftImg = images[leftIndex];
   const mainImg = images[mainIndex];
   const rightImg = images[rightIndex];
-  mainIndex = indexPlusOne(mainIndex);
+  mainIndex = indexLessOne(mainIndex);
   animate({
     duration,
     timing: linear,
@@ -219,7 +219,7 @@ const leftToRight = (after, duration) => {
       if (after) after();
       dots.forEach((dot) => dot.classList.remove("active"));
       dots[mainIndex].classList.add("active");
-      rightArrow.addEventListener("click", handleRightArrowClick);
+      leftArrow.addEventListener("click", handleLeftArrowClick);
     },
   });
   return new Promise(function (resolve) {
@@ -233,12 +233,12 @@ const leftToRight = (after, duration) => {
 
 const handleLeftArrowClick = () => {
   leftArrow.removeEventListener("click", handleLeftArrowClick);
-  rightToLeft(null, 500);
+  leftToRight(null, 500);
 };
 
 const handleRightArrowClick = () => {
   rightArrow.removeEventListener("click", handleRightArrowClick);
-  leftToRight(null, 500);
+  rightToLeft(null, 500);
 };
 
 const handleDotClick = async (e) => {
@@ -246,12 +246,15 @@ const handleDotClick = async (e) => {
   const distanceToTarget = Math.abs(mainIndex - targetIndex);
   const directionToTarget = mainIndex > targetIndex ? "left" : "right";
   const nearestPath =
-    (distanceToTarget > images.length && directionToTarget === "left") ||
-    (distanceToTarget < images.length && directionToTarget === "right")
-      ? leftToRight
-      : rightToLeft;
+    (distanceToTarget > images.length / 2 && directionToTarget === "left") ||
+    (distanceToTarget <= images.length / 2 && directionToTarget === "right")
+      ? rightToLeft
+      : leftToRight;
   while (mainIndex !== targetIndex) {
-    await nearestPath(null, 500 / distanceToTarget);
+    await nearestPath(
+      null,
+      500 / (images.length / 2 - Math.abs(images.length / 2 - distanceToTarget))
+    );
   }
 };
 
@@ -263,4 +266,4 @@ dots.forEach((dot) => {
   dot.addEventListener("click", handleDotClick);
 });
 
-setInterval(() => leftToRight(null, 500), 5000);
+setInterval(() => rightToLeft(null, 500), 5000);
