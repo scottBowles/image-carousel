@@ -262,3 +262,5 @@ rightArrow.addEventListener("click", handleRightArrowClick);
 dots.forEach((dot) => {
   dot.addEventListener("click", handleDotClick);
 });
+
+setInterval(() => leftToRight(null, 500), 5000);
