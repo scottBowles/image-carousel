@@ -128,7 +128,7 @@ function linear(timeFraction) {
  *  MOVEMENT
  */
 
-const rightToLeft = (after) => {
+const rightToLeft = (after, duration) => {
   const leftIndex = indexPlusOne(mainIndex);
   const rightIndex = indexLessOne(mainIndex);
   const newImgIndex = indexLessOne(rightIndex);
@@ -138,7 +138,7 @@ const rightToLeft = (after) => {
   const rightImg = images[rightIndex];
   mainIndex = indexLessOne(mainIndex);
   animate({
-    duration: 500,
+    duration,
     timing: linear,
     draw: function ltr(progress) {
       newImg.style.left =
@@ -173,9 +173,12 @@ const rightToLeft = (after) => {
       leftArrow.addEventListener("click", handleLeftArrowClick);
     },
   });
+  return new Promise(function (resolve) {
+    setTimeout(resolve, duration);
+  });
 };
 
-const leftToRight = (after) => {
+const leftToRight = (after, duration) => {
   const leftIndex = indexPlusOne(mainIndex);
   const rightIndex = indexLessOne(mainIndex);
   const newImgIndex = indexPlusOne(leftIndex);
@@ -185,7 +188,7 @@ const leftToRight = (after) => {
   const rightImg = images[rightIndex];
   mainIndex = indexPlusOne(mainIndex);
   animate({
-    duration: 500,
+    duration,
     timing: linear,
     draw: function ltr(progress) {
       newImg.style.left = leftImgLeftValue * progress + "px";
@@ -219,6 +222,9 @@ const leftToRight = (after) => {
       rightArrow.addEventListener("click", handleRightArrowClick);
     },
   });
+  return new Promise(function (resolve) {
+    setTimeout(resolve, duration);
+  });
 };
 
 /*
@@ -227,12 +233,12 @@ const leftToRight = (after) => {
 
 const handleLeftArrowClick = () => {
   leftArrow.removeEventListener("click", handleLeftArrowClick);
-  rightToLeft();
+  rightToLeft(null, 500);
 };
 
 const handleRightArrowClick = () => {
   rightArrow.removeEventListener("click", handleRightArrowClick);
-  leftToRight();
+  leftToRight(null, 500);
 };
 
 const handleDotClick = async (e) => {
@@ -245,7 +251,7 @@ const handleDotClick = async (e) => {
       ? leftToRight
       : rightToLeft;
   while (mainIndex !== targetIndex) {
-    nearestPath();
+    await nearestPath(null, 500 / distanceToTarget);
   }
 };
 
